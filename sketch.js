@@ -54,6 +54,7 @@ const Sketch = sketch => {
 					const chosenColor = allowedColors.find(colorGroup => colorGroup.label === colorName);
 					color = hexToRgb(chosenColor.value);
 					chrome.storage.sync.set({ color: chosenColor.value });
+					chrome.runtime.sendMessage({ event: 'status-changed', color: chosenColor.value });
 					setTimeout(() => {
 						if (activeElement) {
 							activeElement.focus();
@@ -105,7 +106,6 @@ const Sketch = sketch => {
 
 	chrome.runtime.onMessage.addListener(async (msg, _sender, _sendResponse) => {
 		if (msg.event === 'color-change') {
-			console.log(msg.color)
 			chrome.storage.sync.set({ color: msg.color });
 			color = hexToRgb(msg.color);
 		} else if (msg.event === 'status-changed') {

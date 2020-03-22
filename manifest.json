@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Lucas Screen Drawer",
 	"version": "0.01",
-	"web_accessible_resources": [ "cursor.png" ],
+	"web_accessible_resources": [ "cursor.png", "style.css" ],
 	"content_scripts": [
 		{
 			"matches": [

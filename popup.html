@@ -7,11 +7,22 @@
 	<title>Screen Drawer</title>
 </head>
 <body>
-	<label for="status-input">
-		Drawing
-	</label>
-	<input type="checkbox" name="status" id="status-input" />
-	<input type="color" name="color" id="color-picker" />
+	<h1>Screen Drawer</h1>
+	<hr>
+	<div class="wrap">
+		<form id="status-form">
+			<input type="checkbox" name="toggle" id="toggle" class="toggle" />
+			<label for="toggle">Toggle On/Off</label>
+		</form>	
+		<button id="color-btn">
+			Choose color
+		</button>
+		<div class="half">
+			<div class="colorPicker"></div>
+		</div>
+	</div>
 	<script src="popup.js"></script>
+	<script src="iro.js"></script>
+	<script src="colorpicker.js"></script>
 </body>
 </html>

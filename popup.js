@@ -1,11 +1,27 @@
 window.addEventListener('DOMContentLoaded', () => {
 
-	const statusInput = document.getElementById('status-input');
-	const colorPicker = document.getElementById('color-picker');
-
-	chrome.storage.sync.get('color', data => {
-		if (data.color) {
-			colorPicker.setAttribute('value', data.color);
+	const statusInput = document.getElementById('toggle');
+	const colorPickerContainer = document.getElementsByClassName('half')[0];
+	const colorPicker = document.getElementsByClassName('colorPicker')[0];
+	const colorBtn = document.getElementById('color-btn');
+	colorPickerContainer.style.cssText = 'overflow:hidden;margin:0;height:0px;';
+	let colorPickerShown = false;
+	colorPicker.style.opacity = 0;
+	
+	colorBtn.addEventListener('click', () => {
+		if (!colorPickerShown) {
+			colorPickerContainer.style.cssText = 'height:150px;margin:2rem 0;';
+			setTimeout(() => {
+				colorPickerContainer.style.overflow = 'visible';
+				colorPickerShown = !colorPickerShown;
+				colorPicker.style.opacity = 1;
+			}, 300);
+		} else {
+			colorPicker.style.opacity = 0;
+			setTimeout(() => {
+				colorPickerShown = !colorPickerShown;
+				colorPickerContainer.style.cssText = 'overflow:hidden;height:0px;';
+			}, 300);
 		}
 	});
 
@@ -15,22 +31,12 @@ window.addEventListener('DOMContentLoaded', () => {
 		}
 	});
 
-	const params = {
-		active: true,
-		currentWindow: true
-	};
-
 	statusInput.addEventListener('change', ({ target }) => {
-		chrome.tabs.query(params, async tabs => {
+		chrome.tabs.query({
+			active: true,
+			currentWindow: true
+		}, async tabs => {
 			if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { event: 'status-changed', status: target.checked });
-		});
-	});
-
-	colorPicker.addEventListener('change', e => {
-		const color = e.target.value;
-
-		chrome.tabs.query(params, async tabs => {
-			if (tabs[0]) chrome.tabs.sendMessage(tabs[0].id, { event: 'color-change', color });
 		});
 	});
 

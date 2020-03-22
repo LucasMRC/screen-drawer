@@ -1,0 +1,72 @@
+body {
+	margin: 0;
+	padding: 1rem;
+	width: 140px;
+}
+
+h1 {
+	font-size: 1rem;
+    margin-top: 0;
+    text-align: center;
+}
+
+/******
+Status Styles
+******/
+
+#status-form {
+	margin: 1rem 0;
+}
+
+#status-form .toggle {
+	width: 0;
+	height: 0;
+	opacity: 0;
+}
+
+#status-form .toggle + label {
+	position: relative;
+	background: #c0c0c0;
+	width: 35px;
+	height: 20px;
+	display: inline-flex;
+	align-items: center;
+	border-radius: 25px;
+	cursor: pointer;
+	transition: background 0.2s ease-in-out;
+	text-indent: calc( 35px + 10px);
+	white-space: nowrap;
+}
+
+#status-form .toggle + label:after {
+	content: "";
+	background: #fff;
+	width: calc(20px - (2px * 2));
+	height: calc(20px - (2px * 2));
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	border-radius: 50%;
+	transition: left 0.3s ease-in-out, background 0.2s ease-in-out;
+}
+
+#status-form .toggle:checked + label {
+	background: seaGreen;
+}
+
+#status-form .toggle:checked + label:after {
+	left: calc(100% - calc(20px - 2px));
+}
+
+/******
+Color picker Styles
+******/
+
+.wrap .half {
+	width: 50%;
+	transition: ease 200ms;
+}
+
+.colorPicker {
+	transition: opacity ease 300ms;
+}

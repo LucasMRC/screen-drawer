@@ -2,7 +2,7 @@
 	"manifest_version": 2,
 	"name": "Lucas Screen Drawer",
 	"version": "0.01",
-	"web_accessible_resources": [ "cursor.png", "style.css" ],
+	"web_accessible_resources": [ "square.png", "cursor.png", "style.css" ],
 	"content_scripts": [
 		{
 			"matches": [
@@ -34,6 +34,13 @@
 				"mac": "Alt+Shift+Space"
 			},
 			"description": "Toggle listening state On/Off"
+		},
+		"clear": {
+			"suggested_key": {
+				"default": "Alt+Shift+P",
+				"mac": "Alt+Shift+P"
+			},
+			"description": "Clear canvas"
 		}
 	}
 }

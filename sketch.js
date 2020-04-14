@@ -7,66 +7,77 @@ function hexToRgb(hex) {
 	} : null;
 }
 
-const allowedKeys = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ", "z", "x", "c", "v", "b", "n", "m", "Backspace"];
+const allowedKeys = ["q", "w", "e", "r", "t", "y", "u", "i", "o", "p", "a", "s", "d", "f", "g", "h", "j", "k", "l", "ñ", "z", "x", "c", "v", "b", "n", "m", "backspace"];
 const allowedColors = [
-	{ label: 'red', value: '#ff0000' },
-	{ label: 'green', value: '#008000' },
-	{ label: 'blue', value: '#0000ff' },
-	{ label: 'black', value: '#000000' },
-	{ label: 'orange', value: '#ffa500' },
-	{ label: 'pink', value: '#ffc0cb' },
-	{ label: 'brown', value: '#8b4513' },
-	{ label: 'yellow', value: '#ffff00' }
+	{ labels: ['red', 'rojo'], value: '#ff0000' },
+	{ labels: ['green', 'verde'], value: '#008000' },
+	{ labels: ['blue', 'azul'], value: '#0000ff' },
+	{ labels: ['black', 'negro'], value: '#000000' },
+	{ labels: ['orange', 'naranja'], value: '#ffa500' },
+	{ labels: ['pink', 'rosa'], value: '#ffc0cb' },
+	{ labels: ['white', 'blanco'], value: '#ffffff' },
+	{ labels: ['brown', 'marron'], value: '#8b4513' },
+	{ labels: ['yellow', 'amarillo'], value: '#ffff00' },
+	{ labels: ['erase', 'borrar'] }
 ];
 
 const Sketch = sketch => {
 
-	chrome.storage.sync.clear();
+	const history = {
+		redo_list: [],
+		undo_list: []
+	}
 
 	let color;
+	let canvas;
 	let cursor;
+	let listenDiv;
+	let activeElement;
 	let status = false;
 	let listening = false;
-	let listenDiv;
 	let colorName = '';
-	let activeElement;
+	let erase = false;
 
 	sketch.setup = () => {
-		const canvas = sketch.createCanvas(document.documentElement.scrollWidth, document.documentElement.scrollHeight);
+		canvas = sketch.createCanvas(document.documentElement.scrollWidth, document.documentElement.scrollHeight);
 		listenDiv = document.createElement('div', { id: 'listening-div' });
-		listenDiv.style.position = 'absolute';
+		listenDiv.style.position = 'fixed';
 		listenDiv.style.zIndex = '2000';
 		listenDiv.style.bottom = '7rem';
 		listenDiv.style.left = '50%';
 		listenDiv.style.transform = 'translateX(-50%)';
 		listenDiv.style.display = 'none';
 		listenDiv.style.opacity = '0.4';
-		listenDiv.style.textShadow = '0px 0px 20px';
-		listenDiv.innerHTML = '<h1 style="font-size: 45px !important;">Enter color:<span id="color-name"><span></h1>';
+		listenDiv.style.textShadow = '0px 0px 250px #fff';
+		listenDiv.innerHTML = '<h1 style="font-size: 45px !important;">Comando:<span id="color-name"><span></h1>';
 		document.body.appendChild(listenDiv);
 		document.body.addEventListener('keydown', e => {
-			if (!listening || !allowedKeys.includes(e.key) || (e.key === 'Backspace' && colorName.length <= 0)) return;
-			else if (e.key === 'Backspace') colorName = colorName.slice(0, -1);
+			if (!listening || !allowedKeys.includes(e.key.toLowerCase()) || (e.key === 'Backspace' && colorName.length <= 0)) return;
+			else if (e.key === 'Backspace') colorName = colorName.slice(0, colorName.length - 1);
 			else {
 				colorName += e.key;
-				if (colorName.length > 6) colorName = colorName.slice(1);
-				if (allowedColors.find(colorGroup => colorGroup.label === colorName)) {
-					const chosenColor = allowedColors.find(colorGroup => colorGroup.label === colorName);
-					color = hexToRgb(chosenColor.value);
-					chrome.storage.sync.set({ color: chosenColor.value });
-					chrome.runtime.sendMessage({ event: 'status-changed', color: chosenColor.value });
+				if (colorName.length > 7) colorName = colorName.slice(1);
+				if (allowedColors.find(colorGroup => colorGroup.labels.includes(colorName))) {
+					if (['erase', 'borrar'].includes(colorName)) {
+						erase = !erase;
+					} else {
+						erase = false;
+						const chosenColor = allowedColors.find(colorGroup => colorGroup.labels.includes(colorName));
+						color = hexToRgb(chosenColor.value);
+						chrome.storage.sync.set({ color: chosenColor.value });
+						chrome.runtime.sendMessage({ event: 'status-changed', color: chosenColor.value });
+					}
+					colorName = '';
 					setTimeout(() => {
 						if (activeElement) {
 							activeElement.focus();
 							activeElement = null;
 						}
-						colorName = '';
-						document.getElementById('color-name').innerHTML = `&nbsp;${colorName}`;
 						listening = false;
 					}, 300);
 				}
+				document.getElementById('color-name').innerHTML = `&nbsp;${colorName}`;
 			}
-			document.getElementById('color-name').innerHTML = `&nbsp;${colorName}`;
 		});
 		canvas.position(0, 0);
 		canvas.style('z-index', '99999');
@@ -75,7 +86,9 @@ const Sketch = sketch => {
 	
 	sketch.draw = () => {
 		if (status) {
-			cursor = chrome.runtime.getURL('cursor.png');
+			cursor = erase
+				? chrome.runtime.getURL('square.png')
+				: chrome.runtime.getURL('cursor.png');
 			document.body.style.userSelect = 'none';
 			document.body.style.cursor = `url(${cursor}), auto`;
 		} else {
@@ -98,9 +111,16 @@ const Sketch = sketch => {
 				sketch.stroke(0);
 			}
 			
-			sketch.strokeWeight(4);
-			
-			sketch.line(sketch.mouseX, sketch.mouseY, sketch.pmouseX, sketch.pmouseY);
+			if (!erase) {
+				sketch.strokeWeight(4);
+				history.undo_list.push(sketch.line(sketch.mouseX, sketch.mouseY, sketch.pmouseX, sketch.pmouseY));
+			} else {
+				sketch.strokeWeight(20);
+				sketch.erase();
+				sketch.line(sketch.mouseX + 10, sketch.mouseY + 10, sketch.pmouseX + 10, sketch.pmouseY + 10);
+				sketch.noErase();
+			}
+
 		}
 	}
 
@@ -127,6 +147,9 @@ const Sketch = sketch => {
 				chrome.storage.sync.set({ listening: !listening });
 				chrome.runtime.sendMessage({event: 'listening-state-changed', listening: !listening });
 				listening = !listening;
+			} else if (msg.command === 'clear') {
+				console.log('borradoo!');
+				sketch.clear();
 			}
 		}
 	});
